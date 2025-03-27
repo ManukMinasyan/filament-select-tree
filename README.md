@@ -190,30 +190,30 @@ use CodeWithDennis\FilamentSelectTree\SelectTree;
 ->filters([
     Filter::make('tree')
         ->form([
-            SelectTree::make('category')
+            SelectTree::make('categories')
                 ->relationship('categories', 'name', 'parent_id')
                 ->enableBranchNode()
-                ->multiple(false)
+                ->multiple()
                 ->prepend([
                     'name' => 'Uncategorized Records',
                     'value' => -1,
-                    'parent' => null, // optional
-                    'disabled' => false, // optional
-                    'hidden' => false, // optional
-                    'children' => [], // optional
+                    'parent' => null, // Optional
+                    'disabled' => false, // Optional
+                    'hidden' => false, // Optional
+                    'children' => [], // Optional
                 ])
         ])
         ->query(function (Builder $query, array $data) {
-            $categories = [(int) $data['category']];
-            
-            return $query->when($data['category'], function (Builder $query, $categories) {
-                if($data['category'] === -1){
-                    return $query->whereDoesntHave('categories');
+            return $query->when($data['categories'], function (Builder $query, $categories) {
+                if(collect($categories)->contains('-1')) {
+                    $query->whereDoesntHave('categories');
                 }
                 
-                return $query->whereHas('categories', fn(Builder $query) => $query->whereIn('id', $categories));
+                return $query->orWhereHas('categories', fn(Builder $query) => $query->whereIn('id', $categories));
             });
         })
+        
+        
 ])
 ```
 
